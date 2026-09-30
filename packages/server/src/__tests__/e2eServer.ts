@@ -78,7 +78,9 @@ async function main(): Promise<void> {
       importance: mapping.importance,
       isCore: mapping.isCore ?? false,
       estimatedEffortHours: mapping.estimatedEffortHours,
-      prerequisiteSkillIds: (mapping.prerequisiteSkillSlugs ?? []).map((s) => skillIds.get(s)).filter(Boolean),
+      prerequisiteSkillIds: (mapping.prerequisiteSkillSlugs ?? [])
+        .map((s) => skillIds.get(s))
+        .filter(Boolean),
     });
   }
 
@@ -121,7 +123,10 @@ async function main(): Promise<void> {
     passwordHash,
     role: 'student',
   });
-  await models.UserPreferences.create({ userId: student._id, weeklyStudyHours: DEMO_STUDENT.weeklyStudyHours });
+  await models.UserPreferences.create({
+    userId: student._id,
+    weeklyStudyHours: DEMO_STUDENT.weeklyStudyHours,
+  });
   await models.StudyGoal.create({ userId: student._id, weeklyMinutes: 360 });
   await models.StudentProfile.create({
     userId: student._id,
@@ -137,7 +142,12 @@ async function main(): Promise<void> {
   for (const entry of DEMO_STUDENT.skills) {
     const skillId = skillIds.get(entry.skillSlug);
     if (!skillId) continue;
-    await models.UserSkill.create({ userId: student._id, skillId, level: entry.level, source: entry.source });
+    await models.UserSkill.create({
+      userId: student._id,
+      skillId,
+      level: entry.level,
+      source: entry.source,
+    });
   }
 
   const adminHash = await hashPassword('E2eAdminPass123');
@@ -195,6 +205,8 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  process.stderr.write(`e2e server failed: ${error instanceof Error ? error.stack : String(error)}\n`);
+  process.stderr.write(
+    `e2e server failed: ${error instanceof Error ? error.stack : String(error)}\n`,
+  );
   process.exit(1);
 });

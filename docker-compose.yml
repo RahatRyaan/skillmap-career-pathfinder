@@ -1,0 +1,63 @@
+# Local development stack: API + client + MongoDB.
+#
+# For a single-container deployment (Render), use the Dockerfile directly.
+# MongoDB Atlas is recommended for the deployed app; this local instance is
+# for development only.
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: skillmap
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - '27017:27017'
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  server:
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DB_MODE: local
+      MONGODB_URI: mongodb://mongo:27017/skillmap
+      AI_MODE: demo
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET in .env}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?set JWT_REFRESH_SECRET in .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@skillmap.ai}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+    volumes:
+      - uploads:/app/uploads
+    ports:
+      - '4000:4000'
+
+  client:
+    build:
+      context: .
+      target: build
+    restart: unless-stopped
+    depends_on:
+      - server
+    environment:
+      VITE_API_URL: http://localhost:4000/api
+    ports:
+      - '5173:5173'
+    command: ['sh', '-c', 'npx vite preview --host --port 5173']
+
+volumes:
+  mongo-data:
+  uploads:

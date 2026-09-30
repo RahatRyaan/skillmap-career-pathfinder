@@ -20,6 +20,9 @@ export default tseslint.config(
       '**/playwright-report/**',
       '**/test-results/**',
       '.kilo/worktrees/**',
+      // Third-party agent library, not project source. Installed tooling, not
+      // our code: see docs/SETUP.md.
+      '.agents/**',
       '**/vitest.config.ts',
       '**/vite.config.ts',
       '**/playwright.config.ts',

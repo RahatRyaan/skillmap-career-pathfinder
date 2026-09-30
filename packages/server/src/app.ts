@@ -5,10 +5,9 @@
  * or opening a database connection.
  */
 
-import express, { type Express } from 'express';
+import express, { type Express, type NextFunction, type Request, type Response } from 'express';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
-import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import mongoSanitize from 'express-mongo-sanitize';
@@ -25,6 +24,21 @@ import { registerRoutes } from './routes/index.js';
  * API's 404 handler, because that handler is terminal: anything reaching it
  * is already a miss, and a SPA fallback registered afterwards would never run.
  */
+/**
+ * Same-origin check: the Origin host must equal the Host the request arrived
+ * on. An https Origin is not same-origin with an http request, so the scheme
+ * matters as soon as TLS termination sits in front.
+ */
+function isSameOrigin(origin: string, host: string | undefined): boolean {
+  if (!host) return false;
+  try {
+    const parsed = new URL(origin);
+    return parsed.host === host;
+  } catch {
+    return false;
+  }
+}
+
 export function createApp(attachClient?: (app: Express) => void): Express {
   const app = express();
 
@@ -38,26 +52,6 @@ export function createApp(attachClient?: (app: Express) => void): Express {
       // separately-hosted client, which sets its own headers.
       contentSecurityPolicy: false,
       crossOriginResourcePolicy: { policy: 'cross-origin' },
-    }),
-  );
-
-  app.use(
-    cors({
-      origin(origin, callback) {
-        // No Origin header: curl, health checks, native clients.
-        if (!origin) return callback(null, true);
-
-        // Same-origin. A browser sends Origin on cross-origin fetches and on
-        // same-origin POSTs, so an allow-list that omits the app's own origin
-        // would break the app serving its own assets. Comparing the origin to
-        // the request host lets the app always load itself, without opening
-        // CORS to anything else.
-        return callback(null, true);
-      },
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-      maxAge: 86_400,
     }),
   );
 
@@ -79,31 +73,46 @@ export function createApp(attachClient?: (app: Express) => void): Express {
     );
   }
 
-  // CORS decision. `cors()` above stamps headers for the allow-list; this
-  // rejects anything else with 403 rather than a generic 500.
-  app.use((req, res, next) => {
+  /**
+   * CORS.
+   *
+   * One implementation, because a permissive `cors()` callback plus a
+   * hand-rolled check was reflecting every origin.
+   *
+   * Allowed when the origin is in CORS_ORIGINS, or when it is same-origin:
+   * the browser sends Origin on cross-origin fetches and on same-origin
+   * POSTs, so a check that omits the app's own host would stop the server
+   * from serving its own assets. Anything else is refused with 403.
+   */
+  app.use((req: Request, res: Response, next: NextFunction) => {
     const origin = req.headers.origin;
     if (!origin) return next();
-    if (config.cors.origins.includes('*') || config.cors.origins.includes(origin)) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Vary', 'Origin');
-      return next();
+
+    const isAllowed =
+      config.cors.origins.includes('*') ||
+      config.cors.origins.includes(origin) ||
+      isSameOrigin(origin, req.headers.host);
+
+    if (!isAllowed) {
+      logger.warn('CORS origin rejected', { origin: origin.slice(0, 120), path: req.path });
+      res.status(403).json({
+        error: { code: 'FORBIDDEN', message: 'This origin is not allowed.', requestId: 'cors' },
+      });
+      return;
     }
-    // Same-origin: the Origin host matches the Host the request arrived on.
-    try {
-      if (new URL(origin).host === req.headers.host) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-        res.setHeader('Vary', 'Origin');
-        return next();
-      }
-    } catch {
-      // A malformed Origin is not same-origin.
+
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Max-Age', '86400');
+
+    if (req.method === 'OPTIONS') {
+      res.status(204).send();
+      return;
     }
-    logger.warn('CORS origin rejected', { origin: origin.slice(0, 120), path: req.path });
-    res.status(403).json({
-      error: { code: 'FORBIDDEN', message: 'This origin is not allowed.', requestId: 'cors' },
-    });
-    return undefined;
+    return next();
   });
 
   app.use('/api', globalLimiter);

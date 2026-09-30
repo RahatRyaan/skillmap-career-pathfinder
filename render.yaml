@@ -1,0 +1,64 @@
+# Render blueprint: deploys the API as a Docker web service.
+#
+# The client deploys to Vercel (see vercel.json). This file is only the server.
+#
+# Required environment variables, set in the Render dashboard, not here:
+#   MONGODB_URI        your MongoDB Atlas SRV string
+#   JWT_ACCESS_SECRET   32+ random characters
+#   JWT_REFRESH_SECRET  a different 32+ random characters
+#   ADMIN_PASSWORD      a real password, not the placeholder
+#   CORS_ORIGINS        your Vercel URL, e.g. https://skillmap-ai.vercel.app
+#
+# Generate secrets with:
+#   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+
+services:
+  - type: web
+    name: skillmap-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: false
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DB_MODE
+        value: atlas
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_ACCESS_TTL
+        value: 15m
+      - key: JWT_REFRESH_TTL
+        value: 7d
+      - key: BCRYPT_ROUNDS
+        value: 10
+      - key: ADMIN_EMAIL
+        value: admin@skillmap.ai
+      - key: ADMIN_PASSWORD
+        sync: false
+      # Demo mode is the honest default for a public deployment: deterministic,
+      # free, offline, and clearly labelled. Switch to `openai` only once a
+      # public endpoint is configured.
+      - key: AI_MODE
+        value: demo
+      - key: AI_BUDGET_USD
+        value: 0
+      - key: CORS_ORIGINS
+        sync: false
+      - key: UPLOAD_DIR
+        value: /app/uploads
+      - key: MAX_UPLOAD_BYTES
+        value: 5242880
+      - key: RATE_LIMIT_LOGIN
+        value: 5
+      - key: RATE_LIMIT_GLOBAL
+        value: 300

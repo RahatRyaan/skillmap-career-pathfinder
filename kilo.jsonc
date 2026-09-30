@@ -1,0 +1,40 @@
+{
+  // Kilo reads this file. `.jsonc` is used because the permission values are
+  // bare identifiers rather than JSON strings.
+  "$schema": "https://kilo.app/schema/config.json",
+
+  // The constitution and the project rules, always in context.
+  "instructions": ["AGENTS.md", ".kilo/rules/*.md"],
+
+  "permission": {
+    "bash": {
+      "*": "ask",
+      // The verification gate and its parts are pre-approved, because
+      // stopping to ask about `npm test` trains people to skip it.
+      "npm run verify": "allow",
+      "npm test": "allow",
+      "npm run test:e2e": "allow",
+      "npm run build": "allow",
+      "npm run seed": "allow",
+      "npm run smoke": "allow",
+      "git status": "allow",
+      "git diff": "allow",
+      "git log": "allow",
+    },
+    "edit": {
+      // The files where a careless change silently corrupts a number, an
+      // authorisation boundary, or an AI safety rule.
+      "packages/shared/src/scoring.ts": "ask",
+      "packages/shared/src/constants.ts": "ask",
+      "packages/server/src/ai/**": "ask",
+      "packages/server/src/middleware/auth.ts": "ask",
+      "packages/server/src/services/impactService.ts": "ask",
+      // Credentials are never edited into the repository.
+      "*.env": "deny",
+      "*.key": "deny",
+      "*.pem": "deny",
+      "*.secret": "deny",
+    },
+    "external_directory": "deny",
+  },
+}

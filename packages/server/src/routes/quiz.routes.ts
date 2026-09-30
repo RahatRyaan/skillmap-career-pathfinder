@@ -78,9 +78,12 @@ export function registerQuizRoutes(app: Express): void {
 
       const ranked = [...scores.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
 
-      const careers = (await models.Career.find({ slug: { $in: ranked.map(([slug]) => slug) }, isPublished: true })
-    .select('name slug summary')
-    .lean()) as { _id: Types.ObjectId; name: string; slug: string; summary: string }[];
+      const careers = (await models.Career.find({
+        slug: { $in: ranked.map(([slug]) => slug) },
+        isPublished: true,
+      })
+        .select('name slug summary')
+        .lean()) as { _id: Types.ObjectId; name: string; slug: string; summary: string }[];
 
       const bySlug = new Map(careers.map((c) => [c.slug, c]));
 
@@ -118,7 +121,11 @@ export function registerQuizRoutes(app: Express): void {
 function buildExplanation(summary: string, score: number, answered: number): string {
   const share = Math.round((score / answered) * 100);
   const strength =
-    share >= 70 ? 'Most of your answers pointed here' : share >= 40 ? 'Several of your answers pointed here' : 'A few of your answers pointed here';
+    share >= 70
+      ? 'Most of your answers pointed here'
+      : share >= 40
+        ? 'Several of your answers pointed here'
+        : 'A few of your answers pointed here';
 
   return `${strength}. ${summary} Look at the required skills and compare them with your own before you commit — the quiz only points at a starting point, it does not decide for you.`;
 }
