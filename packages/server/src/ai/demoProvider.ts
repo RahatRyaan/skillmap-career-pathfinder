@@ -66,9 +66,9 @@ export class DemoProvider implements AIProvider {
     return true;
   }
 
-  // Not async-typed: the interface is async, so this returns a promise either
-  // way. Kept async for interface conformance.
-  // eslint-disable-next-line @typescript-eslint/require-await
+  // Async for interface conformance: AIProvider declares this method as async,
+  // so the promise is part of the contract even though the body is
+  // synchronous. The whole file opts out of require-await for that reason.
   async extractFromCv(text: string): Promise<CvExtractionResult> {
     const items: ExtractedItem[] = [];
     const seen = new Set<string>();

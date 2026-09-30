@@ -7,10 +7,34 @@
  */
 
 import { config as loadDotenv } from 'dotenv';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { z } from 'zod';
 import { AI_MODES } from '@skillmap/shared';
 
-loadDotenv();
+/**
+ * The .env file lives at the repository root, but an npm workspace script runs
+ * with the cwd set to the package directory. Without walking up, a workspace
+ * script silently sees no configuration and reports every required value as
+ * missing, which is misleading. The first .env found walking upward wins;
+ * a real environment variable always takes precedence over the file.
+ */
+function loadRootEnv(): void {
+  let dir = process.cwd();
+  for (let depth = 0; depth < 6; depth += 1) {
+    const candidate = resolve(dir, '.env');
+    if (existsSync(candidate)) {
+      loadDotenv({ path: candidate });
+      return;
+    }
+    const parent = resolve(dir, '..');
+    if (parent === dir) break;
+    dir = parent;
+  }
+  loadDotenv();
+}
+
+loadRootEnv();
 
 const csv = (value: string): string[] =>
   value
