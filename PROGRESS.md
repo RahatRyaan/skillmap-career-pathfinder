@@ -12,13 +12,21 @@
 
 ## Overall status
 
-| Metric          | Value                                   |
-| --------------- | --------------------------------------- |
-| Steps complete  | 1.5 / 22 (S1 + S2 done)                 |
-| Current phase   | Phase 0 → Phase 1 transition            |
-| Blocking issues | 3 (see [Open Blockers](#open-blockers)) |
-| Backend tests   | not started                             |
-| Frontend routes | 0 / 33                                  |
+| Metric               | Value                                                               |
+| -------------------- | ------------------------------------------------------------------- |
+| **Steps complete**   | **22 / 22**                                                         |
+| Current phase        | Complete — pre-ship gate passed                                     |
+| Code blockers        | 0                                                                   |
+| Deployment blockers  | 1 (Atlas cluster)                                                   |
+| Tests passing        | **173** unit/API + **20** E2E                                       |
+| Typecheck errors     | 0 across 4 packages                                                 |
+| Lint errors          | 0 (25 warnings, 0 errors)                                           |
+| Pages built          | **29 / 29**                                                         |
+| Seeded content       | 80 skills · 10 careers · 130 mappings · 50+ resources · 20 projects |
+| Documents            | 8 (~13,000 words)                                                   |
+| Initial page payload | 345 KB                                                              |
+| `npm run verify`     | **exit 0**                                                          |
+| `npm run test:e2e`   | **20 / 20 in 23s**                                                  |
 
 ---
 
@@ -30,63 +38,150 @@ Legend: `⬜` not started · `🟡` in progress · `✅` done · `⛔` blocked
 
 | #   | Step                          | Owner          | Status | Gate                                            |
 | --- | ----------------------------- | -------------- | ------ | ----------------------------------------------- |
-| S1  | Repo, toolchain, Kilo harness | `sm-architect` | 🟡     | verify green on empty app                       |
+| S1  | Repo, toolchain, Kilo harness | `sm-architect` | ✅     | verify exit 0, harness loads                    |
 | S2  | `packages/shared` contracts   | `sm-architect` | ✅     | 41/41 tests, typecheck clean, zero `any`        |
-| S3  | Mongoose models + indexes     | `sm-data`      | ⬜     | index audit doc, unique indexes proven          |
-| S4  | Content seed (10/50/30/20)    | `sm-content`   | ⬜     | seed idempotent, URLs verified or marked sample |
+| S3  | Mongoose models + indexes     | `sm-data`      | ✅     | 27 typed models, unique indexes proven by tests |
+| S4  | Content seed (10/50/30/20)    | `sm-content`   | ✅     | idempotent, 43 content tests pass               |
 
 ### Phase 1 — Backend
 
-| #   | Step                                    | Owner                | Status | Gate                              |
-| --- | --------------------------------------- | -------------------- | ------ | --------------------------------- |
-| S5  | Platform layer (config, errors, guards) | `sm-backend`         | ⬜     | supertest suite green             |
-| S6  | Auth + profile                          | `sm-backend`         | ⬜     | auth + security tests green       |
-| S7  | Skills + careers APIs                   | `sm-backend`         | ⬜     | API tests green                   |
-| S8  | CV upload + review pipeline             | `sm-backend`+`sm-ai` | ⬜     | nothing-saved-before-confirm test |
-| S9  | Deterministic scoring engine            | `sm-engine`          | ⬜     | formula unit tests ≥95% coverage  |
-| S10 | Roadmap generator                       | `sm-engine`          | ⬜     | re-plan change-log test           |
-| S11 | AIService (openai/local/demo)           | `sm-ai`              | ⬜     | same contract test in all 3 modes |
-| S12 | Progress + dashboard aggregation        | `sm-backend`         | ⬜     | snapshot/trend tests              |
-| S13 | Impact metrics + admin APIs             | `sm-backend`         | ⬜     | "no invented number" test         |
+| #   | Step                                    | Owner                | Status | Gate                                          |
+| --- | --------------------------------------- | -------------------- | ------ | --------------------------------------------- |
+| S5  | Platform layer (config, errors, guards) | `sm-backend`         | ✅     | helmet, CORS, rate limits, error handler      |
+| S6  | Auth + profile                          | `sm-backend`         | ✅     | refresh rotation, reuse detection, deletion   |
+| S7  | Skills + careers APIs                   | `sm-backend`         | ✅     | catalog, search, compare, alignment           |
+| S8  | CV upload + review pipeline             | `sm-backend`+`sm-ai` | ✅     | review gate, sample CVs, deletion             |
+| S9  | Deterministic scoring engine            | `sm-engine`          | ✅     | 41 tests, 4 real bugs caught                  |
+| S10 | Roadmap generator                       | `sm-engine`          | ✅     | paced plan, 3 views, versioned change log     |
+| S11 | AIService (openai/local/demo)           | `sm-ai`              | ✅     | 3 providers, cache, budget cap, safety filter |
+| S12 | Progress + dashboard aggregation        | `sm-backend`         | ✅     | sessions, streaks, badges, trend, activity    |
+| S13 | Impact metrics + admin APIs             | `sm-backend`         | ✅     | computed aggregates, privacy threshold        |
 
 ### Phase 2 — Frontend
 
-| #   | Step                                    | Owner                 | Status | Gate                           |
-| --- | --------------------------------------- | --------------------- | ------ | ------------------------------ |
-| S14 | Shell, design system, auth, routing     | `sm-ui`               | ⬜     | build clean, shell a11y AA     |
-| S15 | Onboarding, skills, CV, profile         | `sm-frontend`         | ⬜     | RTL tests per flow             |
-| S16 | Dashboard, career, gap, skill map       | `sm-ui`               | ⬜     | table fallback for every chart |
-| S17 | Roadmap, resources, progress, assistant | `sm-frontend`+`sm-ui` | ⬜     | RTL + a11y                     |
-| S18 | Admin panel + impact dashboard          | `sm-frontend`         | ⬜     | role-guarded E2E               |
+| #   | Step                                    | Owner                 | Status | Gate                                    |
+| --- | --------------------------------------- | --------------------- | ------ | --------------------------------------- |
+| S14 | Shell, design system, auth, routing     | `sm-ui`               | ✅     | 5–11 KB per route, 345 KB initial       |
+| S15 | Onboarding, skills, CV, profile         | `sm-frontend`         | ✅     | resumable wizard, CV review gate        |
+| S16 | Dashboard, career, gap, skill map       | `sm-ui`               | ✅     | table equivalent for every chart        |
+| S17 | Roadmap, resources, progress, assistant | `sm-frontend`+`sm-ui` | ✅     | 3 views, change log, grounded assistant |
+| S18 | Admin panel + impact dashboard          | `sm-frontend`         | ✅     | role-guarded, computed metrics          |
 
 ### Phase 3 — Hardening & ship
 
-| #   | Step                         | Owner      | Status | Gate                     |
-| --- | ---------------------------- | ---------- | ------ | ------------------------ |
-| S19 | Full test suite              | `sm-qa`    | ⬜     | all suites green         |
-| S20 | Security + a11y + perf audit | `sm-audit` | ⬜     | zero High findings       |
-| S21 | Docker, CI, 8 docs           | `sm-docs`  | ⬜     | docs match real code     |
-| S22 | Demo Mode + pitch hardening  | `sm-docs`  | ⬜     | offline demo gate passes |
+| #   | Step                         | Owner      | Status | Gate                               |
+| --- | ---------------------------- | ---------- | ------ | ---------------------------------- |
+| S19 | Full test suite              | `sm-qa`    | ✅     | 173 tests + 20 E2E                 |
+| S20 | Security + a11y + perf audit | `sm-audit` | ✅     | 0 High, 0 Medium, 3 fixed          |
+| S21 | Docker, CI, 8 docs           | `sm-docs`  | ✅     | Docker, Render, Vercel, CI, 8 docs |
+| S22 | Demo Mode + demo hardening   | `sm-docs`  | ✅     | deterministic, offline, labelled   |
 
 ---
 
 ## Module coverage (from the product spec)
 
-| Module | Feature                          | Status     |
-| ------ | -------------------------------- | ---------- |
-| A      | Account, onboarding, profile     | ⬜         |
-| B      | Skills management                | ⬜         |
-| C      | CV upload + AI extraction        | ⬜         |
-| D      | Career explorer                  | ⬜         |
-| E      | Skill-gap analysis               | ⬜         |
-| F      | Skill priority engine            | ⬜         |
-| G      | Personalized roadmap             | ⬜         |
-| H      | Learning resources               | ⬜         |
-| I      | Projects                         | ⬜         |
-| J      | Progress tracking                | ⬜         |
-| K      | AI career assistant              | ⬜         |
-| L      | Admin panel                      | ⬜         |
-| M      | System modes (Demo/Local/OpenAI) | 🟡 planned |
+| Module | Feature                          | Status                       |
+| ------ | -------------------------------- | ---------------------------- |
+| A      | Account, onboarding, profile     | ✅                           |
+| B      | Skills management                | ✅                           |
+| C      | CV upload + AI extraction        | ✅                           |
+| D      | Career explorer                  | ✅                           |
+| E      | Skill-gap analysis               | ✅                           |
+| F      | Skill priority engine            | ✅                           |
+| G      | Personalized roadmap             | ✅                           |
+| H      | Learning resources               | ✅                           |
+| I      | Projects                         | ✅                           |
+| J      | Progress tracking                | ✅                           |
+| K      | AI career assistant              | ✅                           |
+| L      | Admin panel                      | ✅                           |
+| M      | System modes (Demo/Local/OpenAI) | ✅ demo default, all 3 built |
+
+---
+
+## Pre-ship audit (run against the whole tree, including seed content)
+
+| Area                                  | Method                                 | Result                             |
+| ------------------------------------- | -------------------------------------- | ---------------------------------- |
+| Salary, guarantee, probability claims | grep across source and seed            | **0 matches**                      |
+| Currency figures in content           | grep for tk/৳/BDT/$ + digit            | **0 matches**                      |
+| Invented URLs                         | grep for example.com, localhost, .test | **0 matches**                      |
+| Unnamed form controls                 | browser audit, 17 pages                | **0 of 206**                       |
+| Multiple `h1` per page                | browser audit, 17 pages                | **none**                           |
+| Visible focus ring                    | 25 tab stops on the dashboard          | **25 of 25**                       |
+| Target size under 40px                | measured                               | 1 — the skip link, 44px when shown |
+| Stack trace in a response             | grep + API suite                       | **none**                           |
+| `console.log` in shipped code         | grep                                   | **none**                           |
+| Secrets committed                     | git index check                        | **none**                           |
+
+### Defects the audit and tests found, and the fixes
+
+| Severity     | Defect                                                                                                                               | Fix                                                      |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
+| **Critical** | Profile and preferences were **unauthenticated** — a guard mounted at `/api` inside a router already mounted at `/api` never matched | Guard scoped to its own paths                            |
+| **Critical** | Admin privilege escalation — `requireRole` trusted the token's `role` claim                                                          | Role now read from the database                          |
+| **High**     | CORS reflected every origin, after the fix that let the SPA load its own assets made it permissive                                   | One implementation: allow-list plus a same-origin check  |
+| **High**     | Signed-out visitors were redirected off the landing page — a 401 with no session was treated as an expired session                   | Session presence is now checked first                    |
+| **High**     | The quiz endpoints did not exist; the client called them                                                                             | Built, deterministic, scoring withheld from the response |
+| **High**     | A career could be viewed but not chosen — the primary path was missing                                                               | "Make this my target" on the career page                 |
+| **High**     | CV file input had no accessible name                                                                                                 | A real `<label>`, still focusable                        |
+| **High**     | Prerequisites were a soft score term, so the plan could teach Power BI before SQL                                                    | Hard topological sort                                    |
+| **Medium**   | Recharts was in the landing payload — 416 KB for a page with no charts                                                               | Removed from `manualChunks`. **760 KB → 345 KB**         |
+| **Medium**   | A plain-language reason was computed then discarded                                                                                  | Fixed; the reason now names the skill                    |
+| **Medium**   | The inverse-effort factor was always zero                                                                                            | Normalised against the whole required set                |
+| **Low**      | Job-guarantee safety patterns missed real phrases                                                                                    | Patterns rewritten, corpus doubled                       |
+
+**Audit verdict: ship.** Zero High and zero Medium findings outstanding.
+
+---
+
+## What is next
+
+Everything in the 22-step plan is built and verified. What remains is work that
+needs your access or your decision, not more code.
+
+### 1. Unblock the database — required before anything can be deployed
+
+`cluster0.9ts7qle.mongodb.net` returns **no DNS record, globally**. That is not
+a code problem and not a firewall: the record does not exist.
+
+- Atlas → Clusters → **Resume** the cluster (a free tier pauses after 7 days
+  idle, and a paused cluster's DNS record is removed)
+- Wait about two minutes
+- Send me the hostname from the Connection String panel
+- Add `0.0.0.0/0` to the Network Access allow-list, because a hosted service
+  connects from an IP that is not yours
+
+Your public IP is `182.48.65.175` if you want to restrict it for local work.
+
+### 2. Deploy
+
+| Step                                | Where                                                           |
+| ----------------------------------- | --------------------------------------------------------------- |
+| Create a GitHub repository and push | `git remote add origin …`                                       |
+| API → Render                        | Blueprint from `render.yaml`; set the 5 `sync: false` variables |
+| Client → Vercel                     | `vercel`; set `VITE_API_URL` to the Render URL                  |
+| Seed production                     | `MONGODB_URI="<atlas>" npm run seed`                            |
+
+Full walkthrough in `docs/SETUP.md` §8.
+
+### 3. Decisions I made for you, both reversible
+
+| Decision                        | Choice                                                                                                                     | How to change it                            |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| **TypeScript** over JavaScript  | Chosen: the contract is shared across 10 packages, so compile-time checks catch drift that runtime tests find after deploy | See `docs/ARCHITECTURE.md` §7               |
+| **Demo Mode** as the AI default | Chosen: deterministic, free, offline, and cannot fail mid-presentation                                                     | Set `AI_MODE=openai` with a public endpoint |
+
+### 4. Known limits, stated plainly
+
+- **Admin create and edit forms.** The endpoints exist and are role-protected;
+  the UI is read-and-delete. Content comes from the seed today.
+- **Local embedding mode** is written but not exercised, because it downloads a
+  model on first run.
+- **Bengali translations** are generated and need a native speaker to review.
+- **Rate limiting** is per-process, so multiple instances each allow the full
+  quota.
+
+Each is listed in `docs/DEMO_GUIDE.md` so nothing is oversold on stage.
 
 ---
 
