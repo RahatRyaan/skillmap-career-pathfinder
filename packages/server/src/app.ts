@@ -18,7 +18,14 @@ import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { globalLimiter } from './middleware/rateLimit.js';
 import { registerRoutes } from './routes/index.js';
 
-export function createApp(): Express {
+/**
+ * Builds the API app.
+ *
+ * `attachClient` optionally serves a built SPA. It MUST be called before the
+ * API's 404 handler, because that handler is terminal: anything reaching it
+ * is already a miss, and a SPA fallback registered afterwards would never run.
+ */
+export function createApp(attachClient?: (app: Express) => void): Express {
   const app = express();
 
   // Required for correct client IPs (rate limiting) and req.secure detection.
@@ -37,13 +44,15 @@ export function createApp(): Express {
   app.use(
     cors({
       origin(origin, callback) {
-        // No Origin header: curl, health checks, same-origin, mobile app.
+        // No Origin header: curl, health checks, native clients.
         if (!origin) return callback(null, true);
-        if (config.cors.origins.includes(origin) || config.cors.origins.includes('*')) {
-          return callback(null, true);
-        }
-        logger.warn('CORS origin rejected', { origin: origin.slice(0, 120) });
-        return callback(new Error('Origin not allowed'));
+
+        // Same-origin. A browser sends Origin on cross-origin fetches and on
+        // same-origin POSTs, so an allow-list that omits the app's own origin
+        // would break the app serving its own assets. Comparing the origin to
+        // the request host lets the app always load itself, without opening
+        // CORS to anything else.
+        return callback(null, true);
       },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -70,9 +79,38 @@ export function createApp(): Express {
     );
   }
 
+  // CORS decision. `cors()` above stamps headers for the allow-list; this
+  // rejects anything else with 403 rather than a generic 500.
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (!origin) return next();
+    if (config.cors.origins.includes('*') || config.cors.origins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Vary', 'Origin');
+      return next();
+    }
+    // Same-origin: the Origin host matches the Host the request arrived on.
+    try {
+      if (new URL(origin).host === req.headers.host) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Vary', 'Origin');
+        return next();
+      }
+    } catch {
+      // A malformed Origin is not same-origin.
+    }
+    logger.warn('CORS origin rejected', { origin: origin.slice(0, 120), path: req.path });
+    res.status(403).json({
+      error: { code: 'FORBIDDEN', message: 'This origin is not allowed.', requestId: 'cors' },
+    });
+    return undefined;
+  });
+
   app.use('/api', globalLimiter);
 
   registerRoutes(app);
+
+  if (attachClient) attachClient(app);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

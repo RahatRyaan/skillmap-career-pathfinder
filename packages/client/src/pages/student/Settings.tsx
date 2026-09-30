@@ -20,6 +20,7 @@ export default function Settings() {
     setTheme,
     setFontScale,
     setLowDataMode,
+    setLanguage,
     apply,
   } = useSettings();
   const [saving, setSaving] = useState(false);
@@ -114,7 +115,7 @@ export default function Settings() {
                 <button
                   key={lang.code}
                   type="button"
-                  onClick={() => void apply({ language: lang.code })}
+                  onClick={() => setLanguage(lang.code)}
                   aria-pressed={language === lang.code}
                   className={cn(
                     'inline-flex h-11 items-center gap-2 rounded-lg border px-4 text-sm font-medium',

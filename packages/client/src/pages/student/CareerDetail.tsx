@@ -1,7 +1,9 @@
-import { Link, useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Info, Target } from 'lucide-react';
-import { careersApi } from '@/lib/endpoints';
+import { useState } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, Check, Info, Target } from 'lucide-react';
+import { careersApi, profileApi } from '@/lib/endpoints';
+import { toUserMessage } from '@/lib/api';
 import { PageHeader } from '@/components/layout/AppShell';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -10,10 +12,29 @@ import { formatPercent, GAP_LABEL_COPY } from '@/lib/utils';
 
 export default function CareerDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [message, setMessage] = useState<string | null>(null);
+
+  const profile = useQuery({ queryKey: ['profile'], queryFn: () => profileApi.get() });
+
   const career = useQuery({
     queryKey: ['career', id],
     queryFn: () => careersApi.detail(id!),
     enabled: Boolean(id),
+  });
+
+  // Choosing a career has to be possible from the career itself, not only by
+  // hunting through the explorer list.
+  const setTarget = useMutation({
+    mutationFn: () => profileApi.update({ targetCareerId: id! }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['profile'] });
+      void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      void queryClient.invalidateQueries({ queryKey: ['career', id] });
+      setMessage('This is now your target career. Your skill map has been recalculated.');
+    },
+    onError: (err) => setMessage(toUserMessage(err, 'Could not set that as your target.')),
   });
 
   if (career.isLoading) {
@@ -55,16 +76,48 @@ export default function CareerDetail() {
         title={data.name}
         description={data.description}
         action={
-          data.alignmentPercent !== null ? (
-            <div className="text-right">
-              <p className="text-3xl font-bold text-brand">
-                {formatPercent(data.alignmentPercent)}
-              </p>
-              <p className="text-xs text-muted">your alignment</p>
-            </div>
-          ) : null
+          <div className="flex flex-wrap items-center gap-4">
+            {data.alignmentPercent !== null ? (
+              <div className="text-right">
+                <p className="text-3xl font-bold text-brand">
+                  {formatPercent(data.alignmentPercent)}
+                </p>
+                <p className="text-xs text-muted">your alignment</p>
+              </div>
+            ) : null}
+            {profile.data?.targetCareerId === data.id ? (
+              <span className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand-subtle px-4 text-sm font-medium text-brand dark:bg-brand/20">
+                <Check className="h-4 w-4" aria-hidden="true" />
+                Your target
+              </span>
+            ) : (
+              <Button
+                onClick={() => setTarget.mutate()}
+                isLoading={setTarget.isPending}
+                icon={<Target className="h-4 w-4" />}
+              >
+                Make this my target
+              </Button>
+            )}
+          </div>
         }
       />
+
+      {message ? (
+        <div
+          role="status"
+          className="mb-6 rounded-lg border border-brand/30 bg-brand-subtle px-4 py-3 text-sm text-brand dark:bg-brand/20"
+        >
+          {message}{' '}
+          <button
+            type="button"
+            onClick={() => navigate('/app/gap')}
+            className="font-medium underline"
+          >
+            See my skill gap
+          </button>
+        </div>
+      ) : null}
 
       <div className="mb-6 flex flex-wrap gap-2">
         <Badge color="brand">{data.category}</Badge>

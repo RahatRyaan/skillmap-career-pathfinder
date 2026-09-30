@@ -20,6 +20,7 @@ import { registerDashboardRoutes } from './dashboard.routes.js';
 import { registerCvRoutes } from './cv.routes.js';
 import { registerAssistantRoutes } from './assistant.routes.js';
 import { registerAdminRoutes } from './admin.routes.js';
+import { registerQuizRoutes } from './quiz.routes.js';
 
 export function registerRoutes(app: Express): void {
   app.get(
@@ -73,6 +74,7 @@ export function registerRoutes(app: Express): void {
   registerDashboardRoutes(app);
   registerCvRoutes(app);
   registerAssistantRoutes(app);
+  registerQuizRoutes(app);
 
   // Admin last: it is the only router that checks the role.
   registerAdminRoutes(app);

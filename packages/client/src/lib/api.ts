@@ -164,7 +164,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     );
   }
 
-  if (response.status === 401 && !anonymous && !isRetry) {
+  // A 401 only means "session expired" if there WAS a session. Without one it
+  // just means the endpoint is protected, which is normal on a public page —
+  // redirecting there would bounce a signed-out visitor off the landing page.
+  const hadSession = tokenStore.accessToken !== null;
+
+  if (response.status === 401 && !anonymous && !isRetry && hadSession) {
     const refreshed = await refreshSession();
     if (refreshed) {
       return apiRequest<T>(path, { ...options, isRetry: true });

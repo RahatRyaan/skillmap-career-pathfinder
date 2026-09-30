@@ -31,6 +31,7 @@ interface SettingsState {
   setTheme: (theme: Theme) => void;
   setFontScale: (scale: number) => void;
   setLowDataMode: (enabled: boolean) => void;
+  setLanguage: (code: string) => void;
   apply: (patch: Partial<Record<string, unknown>>) => Promise<void>;
 }
 
@@ -55,7 +56,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(initial.theme);
   const [fontScale, setFontScaleState] = useState(initial.fontScale);
   const [lowDataMode, setLowDataModeState] = useState(initial.lowDataMode);
-  const [language, setLanguage] = useState(initial.language);
+  const [language, setLanguageState] = useState(initial.language);
   const [weeklyStudyHours, setWeeklyStudyHours] = useState(5);
   const [aiMode, setAiMode] = useState('demo');
   const [aiNotice, setAiNotice] = useState<string | null>(null);
@@ -88,38 +89,51 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     [theme, fontScale, lowDataMode, language],
   );
 
-  const setTheme = useCallback(
-    (next: Theme) => {
-      setThemeState(next);
-      persist({ theme: next });
+  /**
+   * Applies a change locally, mirrors it to localStorage, and saves it to the
+   * server so it follows the student to another device.
+   *
+   * Local state is updated first so the UI responds immediately, and a failed
+   * save does not block the interaction: the local copy still holds for this
+   * device and the next explicit save will reconcile it.
+   */
+  const commit = useCallback(
+    (patch: Partial<Record<string, unknown>>, localPatch: Partial<SettingsState>) => {
+      if (localPatch.theme !== undefined) setThemeState(localPatch.theme);
+      if (localPatch.fontScale !== undefined) setFontScaleState(localPatch.fontScale);
+      if (localPatch.lowDataMode !== undefined) setLowDataModeState(localPatch.lowDataMode);
+      if (localPatch.language !== undefined) setLanguageState(localPatch.language);
+      persist(localPatch);
+      void profileApi.updatePreferences(patch).catch(() => undefined);
     },
     [persist],
   );
 
+  const setTheme = useCallback((next: Theme) => commit({ theme: next }, { theme: next }), [commit]);
+
   const setFontScale = useCallback(
-    (next: number) => {
-      setFontScaleState(next);
-      persist({ fontScale: next });
-    },
-    [persist],
+    (next: number) => commit({ fontScale: next }, { fontScale: next }),
+    [commit],
   );
 
   const setLowDataMode = useCallback(
-    (next: boolean) => {
-      setLowDataModeState(next);
-      persist({ lowDataMode: next });
-    },
-    [persist],
+    (next: boolean) => commit({ lowDataMode: next }, { lowDataMode: next }),
+    [commit],
   );
 
-  /** Saves a preference to the server so it follows the student across devices. */
+  const setLanguage = useCallback(
+    (next: string) => commit({ language: next }, { language: next }),
+    [commit],
+  );
+
+  /** Explicit save from the settings page, which reports failure to the user. */
   const apply = useCallback(async (patch: Partial<Record<string, unknown>>) => {
     await profileApi.updatePreferences(patch);
     if (patch['theme']) setThemeState(patch['theme'] as Theme);
     if (typeof patch['fontScale'] === 'number') setFontScaleState(patch['fontScale'] as number);
     if (typeof patch['lowDataMode'] === 'boolean')
       setLowDataModeState(patch['lowDataMode'] as boolean);
-    if (typeof patch['language'] === 'string') setLanguage(patch['language'] as string);
+    if (typeof patch['language'] === 'string') setLanguageState(patch['language'] as string);
     if (typeof patch['weeklyStudyHours'] === 'number') {
       setWeeklyStudyHours(patch['weeklyStudyHours'] as number);
     }
@@ -130,8 +144,15 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     void (async () => {
       try {
-        const [profile, mode] = await Promise.all([profileApi.get(), appApi.aiMode()]);
+        // The AI mode is public and always safe to read. The profile is not, so
+        // it is only fetched when there is a session to send.
+        const hasSession = localStorage.getItem('skillmap.accessToken') !== null;
+        const [profile, mode] = await Promise.all([
+          hasSession ? profileApi.get() : Promise.resolve(null),
+          appApi.aiMode(),
+        ]);
         if (cancelled) return;
+        if (!profile) return;
         setThemeState(profile.preferences.theme);
         setFontScaleState(profile.preferences.fontScale);
         setLowDataModeState(profile.preferences.lowDataMode);
@@ -168,6 +189,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       setTheme,
       setFontScale,
       setLowDataMode,
+      setLanguage,
       apply,
     }),
     [
@@ -181,6 +203,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       setTheme,
       setFontScale,
       setLowDataMode,
+      setLanguage,
       apply,
     ],
   );

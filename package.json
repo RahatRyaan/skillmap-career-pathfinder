@@ -26,7 +26,8 @@
     "test:e2e": "playwright test",
     "seed": "npm run seed --workspace @skillmap/server",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "test:e2e:server": "tsx packages/server/src/__tests__/e2eServer.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
