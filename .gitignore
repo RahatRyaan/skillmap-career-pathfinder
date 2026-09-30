@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build artifacts
+dist/
+build/
+out/
+*.tsbuildinfo
+coverage/
+
+# Environment and credentials — NEVER commit
+.env
+.env.*
+!.env.example
+
+# Runtime data
+uploads/
+tmp/
+*.log
+npm-debug.log*
+logs/
+
+# Kilo agent-manager local state (UI/recovery only, not config)
+.kilo/agent-manager.json
+.kilo/worktrees/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/*
+!.vscode/settings.json
+.idea/
+
+# Test artifacts
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+
+# ECC agent library dump — installed tooling, not project source.
+# See docs/SETUP.md for how to reinstall it.
+.agents/
