@@ -152,7 +152,7 @@ a code problem and not a firewall: the record does not exist.
 - Add `0.0.0.0/0` to the Network Access allow-list, because a hosted service
   connects from an IP that is not yours
 
-Your public IP is `182.48.65.175` if you want to restrict it for local work.
+Add your own public IP (visible at <https://api.ipify.org>) if you want to restrict access to local development only.
 
 ### 2. Deploy
 
@@ -228,7 +228,7 @@ I will keep building every layer that does not require a live database.
 
 ### B3 — AI endpoint for deployment
 
-Your key `sk-a8d6ba070aad9db8-45cfd4-76bf2ea4` authenticates successfully against
+The configured gateway key authenticates successfully against
 the local omniroute proxy (verified: `GET /v1/models` → HTTP 200, 19 models
 available including `auto/best-coding`, `auto/best-reasoning`, `auto/cheap`).
 
