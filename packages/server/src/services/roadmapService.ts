@@ -10,9 +10,8 @@
  * finished, so a re-plan never loses their work.
  */
 
-import type { Types } from 'mongoose';
-import { Types as T } from 'mongoose';
-import { ROADMAP_DEFAULTS, type RoadmapResponse, type RoadmapItem } from '@skillmap/shared';
+import type { Types, Types as T } from 'mongoose';
+import { ROADMAP_DEFAULTS, type RoadmapItem, type RoadmapResponse } from '@skillmap/shared';
 import { models } from '../models/index.js';
 import { analyzeCareer, type CareerAnalysis } from './analysisService.js';
 import { buildRoadmapPlan, type RoadmapPlan } from './roadmapEngine.js';

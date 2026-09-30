@@ -252,6 +252,11 @@ export interface SimulationResult {
     projectedPercent: number;
     deltaPercent: number;
   }[];
+  /** Gaps as they would be if every change were applied. */
+  projectedGaps: SkillGap[];
+  /** Priorities as they would be, so the UI can show what moves up. */
+  projectedPriorities: PriorityItem[];
+  changedSkillCount: number;
   disclaimer: string;
 }
 

@@ -9,8 +9,13 @@
 
 import { Router } from 'express';
 import type { Express, Response } from 'express';
-import { Types } from 'mongoose';
-import { assistantChatSchema, type AssistantResponse } from '@skillmap/shared';
+import {
+  assistantChatSchema,
+  type AssistantChatRequest,
+  type AssistantResponse,
+} from '@skillmap/shared';
+import type { Types } from 'mongoose';
+import type { AssistantContext } from '../ai/types.js';
 import { asyncHandler, validate, type ValidatedRequest } from '../middleware/validate.js';
 import { getUserId, requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { assistantLimiter } from '../middleware/rateLimit.js';
@@ -28,8 +33,7 @@ export function registerAssistantRoutes(app: Express): void {
     validate({ body: assistantChatSchema }),
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
       const userId = getUserId(req);
-      const body = (req as ValidatedRequest<import('@skillmap/shared').AssistantChatRequest>)
-        .validated.body!;
+      const body = (req as ValidatedRequest<AssistantChatRequest>).validated.body!;
 
       const context = await buildContext(userId, body.pageContext);
 
@@ -71,7 +75,7 @@ export function registerAssistantRoutes(app: Express): void {
 async function buildContext(
   userId: Types.ObjectId,
   pageContext?: string,
-): Promise<import('../ai/types.js').AssistantContext> {
+): Promise<AssistantContext> {
   const [user, profile, prefs, owned] = await Promise.all([
     models.User.findById(userId).select('name').lean() as Promise<{ name: string } | null>,
     models.StudentProfile.findOne({ userId }).select('targetCareerId').lean() as Promise<{
@@ -89,8 +93,8 @@ async function buildContext(
 
   let careerName: string | null = null;
   let alignmentPercent: number | null = null;
-  let topGaps: import('../ai/types.js').AssistantContext['topGaps'] = [];
-  let topPriorities: import('../ai/types.js').AssistantContext['topPriorities'] = [];
+  let topGaps: AssistantContext['topGaps'] = [];
+  let topPriorities: AssistantContext['topPriorities'] = [];
 
   if (targetCareerId) {
     const [career, analysis] = await Promise.all([

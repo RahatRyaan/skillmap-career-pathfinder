@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --surface: 255 255 255;
+    --surface-raised: 249 250 251;
+    --border: 229 231 235;
+    --text: 17 24 39;
+    --text-muted: 107 114 128;
+  }
+
+  .dark {
+    --surface: 17 24 39;
+    --surface-raised: 31 41 55;
+    --border: 55 65 81;
+    --text: 243 244 246;
+    --text-muted: 156 163 175;
+  }
+
+  html {
+    /* Adjustable font scale from the user's settings. */
+    font-size: calc(16px * var(--font-scale, 1));
+  }
+
+  body {
+    @apply bg-[rgb(var(--surface))] text-[rgb(var(--text))] antialiased;
+    font-family: 'Noto Sans', 'Noto Sans Bengali', system-ui, sans-serif;
+  }
+
+  /* A visible focus ring on every interactive element is a hard requirement,
+     not a nicety: keyboard users must always know where they are. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand ring-offset-2;
+    --tw-ring-offset-color: rgb(var(--surface));
+  }
+
+  /* Respect the user's reduced-motion preference and the low-data mode. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  .low-data *,
+  .low-data *::before,
+  .low-data *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .low-data img,
+  .low-data svg {
+    animation: none !important;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-card border border-[rgb(var(--border))] bg-[rgb(var(--surface))] p-6 shadow-sm;
+  }
+
+  .card-raised {
+    @apply rounded-card border border-[rgb(var(--border))] bg-[rgb(var(--surface-raised))] p-6;
+  }
+
+  .skeleton {
+    @apply animate-pulse rounded bg-[rgb(var(--border))];
+  }
+
+  /* Charts get a visually-hidden table equivalent for screen readers. */
+  .sr-only-focusable:not(:focus):not(:active) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+}
+
+@layer utilities {
+  .text-muted {
+    @apply text-[rgb(var(--text-muted))];
+  }
+
+  /* Bengali text needs a little more line height to stay readable. */
+  :lang(bn) {
+    line-height: 1.75;
+  }
+}

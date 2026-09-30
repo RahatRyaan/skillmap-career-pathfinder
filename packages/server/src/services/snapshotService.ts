@@ -9,7 +9,7 @@
 import type { Types } from 'mongoose';
 import { SNAPSHOT_RETENTION_DAYS } from '@skillmap/shared';
 import { models } from '../models/index.js';
-import { analyzeCareer, type CareerAnalysis } from './analysisService.js';
+import type { CareerAnalysis } from './analysisService.js';
 import { logger } from '../utils/logger.js';
 
 /**

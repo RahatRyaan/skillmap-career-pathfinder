@@ -20,6 +20,8 @@ import {
   type PrioritiesResponse,
   type OwnedSkill,
   type SkillLevel,
+  type SimulateRequest,
+  type JobDescriptionAnalyzeRequest,
 } from '@skillmap/shared';
 import { asyncHandler, validate, type ValidatedRequest } from '../middleware/validate.js';
 import { getUserId, requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
@@ -91,8 +93,7 @@ export function registerAnalysisRoutes(app: Express): void {
     validate({ body: simulateSchema }),
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
       const userId = getUserId(req);
-      const body = (req as ValidatedRequest<import('@skillmap/shared').SimulateRequest>).validated
-        .body!;
+      const body = (req as ValidatedRequest<SimulateRequest>).validated.body!;
 
       const careerId = new Types.ObjectId(body.careerId);
       const baseline = await analyzeCareer(userId, careerId);
@@ -248,9 +249,7 @@ export function registerAnalysisRoutes(app: Express): void {
     validate({ body: jobDescriptionAnalyzeSchema }),
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
       const userId = getUserId(req);
-      const body = (
-        req as ValidatedRequest<import('@skillmap/shared').JobDescriptionAnalyzeRequest>
-      ).validated.body!;
+      const body = (req as ValidatedRequest<JobDescriptionAnalyzeRequest>).validated.body!;
 
       const analysis = await analyzeJobDescription(body.text, userId.toString());
 

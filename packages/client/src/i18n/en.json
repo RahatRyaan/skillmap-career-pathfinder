@@ -1,0 +1,79 @@
+{
+  "app": {
+    "name": "SkillMap AI",
+    "tagline": "From where you are today to where your career can take you."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "skills": "My Skills",
+    "cv": "CV Upload",
+    "careers": "Careers",
+    "gap": "Skill Gap",
+    "skillMap": "Skill Map",
+    "roadmap": "Roadmap",
+    "resources": "Resources",
+    "projects": "Projects",
+    "progress": "Progress",
+    "profile": "Profile",
+    "settings": "Settings",
+    "admin": "Admin"
+  },
+  "common": {
+    "loading": "Loading",
+    "retry": "Try again",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "empty": "Nothing here yet",
+    "error": "Something went wrong",
+    "why": "Why?",
+    "required": "Required",
+    "optional": "Optional",
+    "free": "Free",
+    "paid": "Paid",
+    "sample": "Sample",
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip for now",
+    "done": "Done",
+    "hours": "hours",
+    "level": "Level",
+    "gap": "Gap",
+    "all": "All"
+  },
+  "score": {
+    "disclaimer": "This score represents alignment with the selected skill requirements and is not a prediction of employment.",
+    "alignment": "Career Alignment",
+    "strong": "Strong",
+    "developing": "Developing",
+    "gap": "Gap",
+    "critical": "Critical"
+  },
+  "empty": {
+    "skills": {
+      "title": "No skills yet",
+      "body": "Add the skills you already have so SkillMap can compare them with a career. Start with anything you have used at least once."
+    },
+    "career": {
+      "title": "No target career yet",
+      "body": "Choose a career to see your skill gaps and get a personalised roadmap."
+    },
+    "roadmap": {
+      "title": "No roadmap yet",
+      "body": "Pick a target career, then generate a roadmap paced to the study hours you set."
+    },
+    "progress": {
+      "title": "Nothing tracked yet",
+      "body": "Log your first study session to start a streak and see your weekly goal."
+    }
+  },
+  "errors": {
+    "network": "Could not reach the server. Check your connection and try again.",
+    "auth": "Your session has ended. Please sign in again.",
+    "generic": "Something went wrong. Please try again."
+  }
+}

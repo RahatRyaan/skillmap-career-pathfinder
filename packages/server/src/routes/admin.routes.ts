@@ -18,6 +18,11 @@ import {
   projectUpsertSchema,
   resourceUpsertSchema,
   skillUpsertSchema,
+  type CareerUpsertRequest,
+  type SkillUpsertRequest,
+  type CareerSkillMappingRequest,
+  type ResourceUpsertRequest,
+  type ProjectUpsertRequest,
 } from '@skillmap/shared';
 import { asyncHandler, validate, type ValidatedRequest } from '../middleware/validate.js';
 import { requireAuth, requireRole, type AuthenticatedRequest } from '../middleware/auth.js';
@@ -71,8 +76,7 @@ export function registerAdminRoutes(app: Express): void {
     '/admin/careers',
     validate({ body: careerUpsertSchema }),
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-      const body = (req as ValidatedRequest<import('@skillmap/shared').CareerUpsertRequest>)
-        .validated.body!;
+      const body = (req as ValidatedRequest<CareerUpsertRequest>).validated.body!;
       await assertSlugFree(models.Career, body.slug, null);
       const doc = await models.Career.create(body);
       await audit(req, 'admin.career.create', 'career', doc._id);
@@ -85,8 +89,7 @@ export function registerAdminRoutes(app: Express): void {
     validate({ body: careerUpsertSchema }),
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
       const id = parseId((req.params as { id: string }).id);
-      const body = (req as ValidatedRequest<import('@skillmap/shared').CareerUpsertRequest>)
-        .validated.body!;
+      const body = (req as ValidatedRequest<CareerUpsertRequest>).validated.body!;
       await assertSlugFree(models.Career, body.slug, id);
       const doc = await models.Career.findByIdAndUpdate(id, { $set: body }, { new: true });
       if (!doc) throw notFound('Career');
@@ -136,8 +139,7 @@ export function registerAdminRoutes(app: Express): void {
     '/admin/skills',
     validate({ body: skillUpsertSchema }),
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-      const body = (req as ValidatedRequest<import('@skillmap/shared').SkillUpsertRequest>)
-        .validated.body!;
+      const body = (req as ValidatedRequest<SkillUpsertRequest>).validated.body!;
       await assertSlugFree(models.Skill, body.slug, null);
       const doc = await models.Skill.create(body);
       for (const alias of body.aliases) {
@@ -157,8 +159,7 @@ export function registerAdminRoutes(app: Express): void {
     validate({ body: skillUpsertSchema }),
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
       const id = parseId((req.params as { id: string }).id);
-      const body = (req as ValidatedRequest<import('@skillmap/shared').SkillUpsertRequest>)
-        .validated.body!;
+      const body = (req as ValidatedRequest<SkillUpsertRequest>).validated.body!;
       await assertSlugFree(models.Skill, body.slug, id);
       const doc = await models.Skill.findByIdAndUpdate(id, { $set: body }, { new: true });
       if (!doc) throw notFound('Skill');
@@ -204,8 +205,7 @@ export function registerAdminRoutes(app: Express): void {
     '/admin/career-skills',
     validate({ body: careerSkillMappingSchema }),
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-      const body = (req as ValidatedRequest<import('@skillmap/shared').CareerSkillMappingRequest>)
-        .validated.body!;
+      const body = (req as ValidatedRequest<CareerSkillMappingRequest>).validated.body!;
 
       const careerId = new Types.ObjectId(body.careerId);
       const skillId = new Types.ObjectId(body.skillId);
@@ -278,8 +278,7 @@ export function registerAdminRoutes(app: Express): void {
     '/admin/resources',
     validate({ body: resourceUpsertSchema }),
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-      const body = (req as ValidatedRequest<import('@skillmap/shared').ResourceUpsertRequest>)
-        .validated.body!;
+      const body = (req as ValidatedRequest<ResourceUpsertRequest>).validated.body!;
       const doc = await models.LearningResource.create(body);
       await audit(req, 'admin.resource.create', 'resource', doc._id);
       res.status(201).json(doc);
@@ -291,8 +290,7 @@ export function registerAdminRoutes(app: Express): void {
     validate({ body: resourceUpsertSchema }),
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
       const id = parseId((req.params as { id: string }).id);
-      const body = (req as ValidatedRequest<import('@skillmap/shared').ResourceUpsertRequest>)
-        .validated.body!;
+      const body = (req as ValidatedRequest<ResourceUpsertRequest>).validated.body!;
       const doc = await models.LearningResource.findByIdAndUpdate(
         id,
         { $set: body },
@@ -339,8 +337,7 @@ export function registerAdminRoutes(app: Express): void {
     '/admin/projects',
     validate({ body: projectUpsertSchema }),
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-      const body = (req as ValidatedRequest<import('@skillmap/shared').ProjectUpsertRequest>)
-        .validated.body!;
+      const body = (req as ValidatedRequest<ProjectUpsertRequest>).validated.body!;
       await assertSlugFree(models.Project, body.slug, null);
       const doc = await models.Project.create(body);
       await audit(req, 'admin.project.create', 'project', doc._id);
@@ -353,8 +350,7 @@ export function registerAdminRoutes(app: Express): void {
     validate({ body: projectUpsertSchema }),
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
       const id = parseId((req.params as { id: string }).id);
-      const body = (req as ValidatedRequest<import('@skillmap/shared').ProjectUpsertRequest>)
-        .validated.body!;
+      const body = (req as ValidatedRequest<ProjectUpsertRequest>).validated.body!;
       await assertSlugFree(models.Project, body.slug, id);
       const doc = await models.Project.findByIdAndUpdate(id, { $set: body }, { new: true });
       if (!doc) throw notFound('Project');

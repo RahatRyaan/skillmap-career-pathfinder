@@ -9,7 +9,9 @@ import {
   generateRoadmapSchema,
   progressUpdateSchema,
   studySessionSchema,
-  type RoadmapResponse,
+  type GenerateRoadmapRequest,
+  type ProgressUpdateRequest,
+  type StudySessionRequest,
 } from '@skillmap/shared';
 import { asyncHandler, validate, type ValidatedRequest } from '../middleware/validate.js';
 import { getUserId, requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
@@ -36,8 +38,7 @@ export function registerRoadmapRoutes(app: Express): void {
     validate({ body: generateRoadmapSchema }),
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
       const userId = getUserId(req);
-      const body = (req as ValidatedRequest<import('@skillmap/shared').GenerateRoadmapRequest>)
-        .validated.body!;
+      const body = (req as ValidatedRequest<GenerateRoadmapRequest>).validated.body!;
 
       const careerId = new Types.ObjectId(body.careerId);
       const result = await generateRoadmap({
@@ -150,8 +151,7 @@ export function registerRoadmapRoutes(app: Express): void {
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
       const userId = getUserId(req);
       const itemId = parseId((req.params as { itemId: string }).itemId, 'item id');
-      const body = (req as ValidatedRequest<import('@skillmap/shared').ProgressUpdateRequest>)
-        .validated.body!;
+      const body = (req as ValidatedRequest<ProgressUpdateRequest>).validated.body!;
 
       const roadmap = await models.Roadmap.findOne({
         userId,
@@ -230,8 +230,7 @@ export function registerRoadmapRoutes(app: Express): void {
     validate({ body: studySessionSchema }),
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
       const userId = getUserId(req);
-      const body = (req as ValidatedRequest<import('@skillmap/shared').StudySessionRequest>)
-        .validated.body!;
+      const body = (req as ValidatedRequest<StudySessionRequest>).validated.body!;
 
       await models.StudySession.create({
         userId,

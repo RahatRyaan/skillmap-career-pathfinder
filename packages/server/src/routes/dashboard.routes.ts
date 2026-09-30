@@ -14,6 +14,8 @@ import {
   type DashboardResponse,
   type ProjectResponse,
   type ResourceResponse,
+  type ResourceQuery,
+  type UserProjectUpdateRequest,
 } from '@skillmap/shared';
 import { getUserId, requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { notFound } from '../utils/errors.js';
@@ -194,8 +196,7 @@ export function registerDashboardRoutes(app: Express): void {
     '/resources',
     validate({ query: resourceQuerySchema }),
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-      const query = (req as ValidatedRequest<never, import('@skillmap/shared').ResourceQuery>)
-        .validated.query!;
+      const query = (req as ValidatedRequest<never, ResourceQuery>).validated.query!;
 
       const filter: Record<string, unknown> = { isPublished: true };
       if (query.skillId) filter['skillId'] = query.skillId;
@@ -316,13 +317,10 @@ export function registerDashboardRoutes(app: Express): void {
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
       const userId = getUserId(req);
       const projectId = new Types.ObjectId((req.params as { id: string }).id);
-      const body = (req as ValidatedRequest<import('@skillmap/shared').UserProjectUpdateRequest>)
-        .validated.body!;
+      const body = (req as ValidatedRequest<UserProjectUpdateRequest>).validated.body!;
 
       const project = await models.Project.findById(projectId).select('skillIds title').lean();
       if (!project) throw notFound('Project');
-
-      const existing = await models.UserProject.findOne({ userId, projectId });
 
       await models.UserProject.updateOne(
         { userId, projectId },

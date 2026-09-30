@@ -15,7 +15,12 @@ import { randomUUID } from 'node:crypto';
 import { unlink } from 'node:fs/promises';
 import multer from 'multer';
 import { Types } from 'mongoose';
-import { cvReviewSchema, type CvDocumentResponse, type ExtractedItem } from '@skillmap/shared';
+import {
+  cvReviewSchema,
+  type CvDocumentResponse,
+  type CvReviewRequest,
+  type ExtractedItem,
+} from '@skillmap/shared';
 import { config } from '../config/env.js';
 import { uploadLimiter } from '../middleware/rateLimit.js';
 import { asyncHandler, validate, type ValidatedRequest } from '../middleware/validate.js';
@@ -174,8 +179,7 @@ export function registerCvRoutes(app: Express): void {
     asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
       const userId = getUserId(req);
       const id = parseId((req.params as { id: string }).id);
-      const body = (req as ValidatedRequest<import('@skillmap/shared').CvReviewRequest>).validated
-        .body!;
+      const body = (req as ValidatedRequest<CvReviewRequest>).validated.body!;
 
       const doc = await models.CvDocument.findOne({ _id: id, userId });
       if (!doc) throw notFound('CV');
