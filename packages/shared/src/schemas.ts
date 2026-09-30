@@ -224,7 +224,7 @@ export interface SkillGapResponse {
   transferableNotes: { skillId: string; skillName: string; source: string; credit: number }[];
 }
 
-export const simulateRequestSchema = z.object({
+export const simulateSchema = z.object({
   careerId: objectIdSchema,
   /** Skill id → hypothetical new level. */
   changes: z
@@ -236,7 +236,7 @@ export const simulateRequestSchema = z.object({
     )
     .max(20),
 });
-export type SimulateRequest = z.infer<typeof simulateRequestSchema>;
+export type SimulateRequest = z.infer<typeof simulateSchema>;
 
 export interface SimulationResult {
   careerId: string;

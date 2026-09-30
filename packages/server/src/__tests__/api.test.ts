@@ -256,8 +256,8 @@ describe('authentication guards', () => {
   });
 
   it('rejects a token that claims a role it does not have', async () => {
-    // requireActiveAccount re-reads the role from the database, so a token
-    // claiming admin cannot escalate.
+    // The role is re-read from the database on admin routes, so a token that
+    // claims admin for a student account is refused.
     const jwt = (await import('jsonwebtoken')).default;
     const escalated = jwt.sign(
       { sub: fixture.student.id, role: 'admin', email: fixture.student.email, type: 'access' },
@@ -268,7 +268,9 @@ describe('authentication guards', () => {
     const response = await request(app)
       .get('/api/admin/users')
       .set('Authorization', `Bearer ${escalated}`);
-    expect(response.status).toBe(404);
+
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe('FORBIDDEN');
   });
 });
 
@@ -569,7 +571,7 @@ describe('NoSQL injection resistance', () => {
 
 describe('error handling', () => {
   it('returns a structured 404 for an unknown route', async () => {
-    const response = await request(app).get('/api/does-not-exist');
+    const response = await request(app).get('/not-an-api-route-at-all');
 
     expect(response.status).toBe(404);
     expect(response.body.error.code).toBe('NOT_FOUND');
@@ -577,7 +579,7 @@ describe('error handling', () => {
   });
 
   it('never leaks a stack trace', async () => {
-    const response = await request(app).get('/api/does-not-exist');
+    const response = await request(app).get('/not-an-api-route-at-all');
     const body = JSON.stringify(response.body);
 
     expect(body).not.toContain('at ');
@@ -586,7 +588,7 @@ describe('error handling', () => {
   });
 
   it('returns a requestId so a user error report is traceable', async () => {
-    const response = await request(app).get('/api/does-not-exist');
+    const response = await request(app).get('/not-an-api-route-at-all');
     expect(response.body.error.requestId).toMatch(/^[a-z0-9]+-[a-z0-9]+$/);
   });
 });

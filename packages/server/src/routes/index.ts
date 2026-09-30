@@ -14,6 +14,12 @@ import { healthSchema, aiModeSchema } from './health.schemas.js';
 import { registerAuthRoutes } from './auth.routes.js';
 import { registerProfileRoutes } from './profile.routes.js';
 import { registerCatalogRoutes } from './catalog.routes.js';
+import { registerAnalysisRoutes } from './analysis.routes.js';
+import { registerRoadmapRoutes } from './roadmap.routes.js';
+import { registerDashboardRoutes } from './dashboard.routes.js';
+import { registerCvRoutes } from './cv.routes.js';
+import { registerAssistantRoutes } from './assistant.routes.js';
+import { registerAdminRoutes } from './admin.routes.js';
 
 export function registerRoutes(app: Express): void {
   app.get(
@@ -62,6 +68,14 @@ export function registerRoutes(app: Express): void {
   registerAuthRoutes(app);
   registerProfileRoutes(app);
   registerCatalogRoutes(app);
+  registerAnalysisRoutes(app);
+  registerRoadmapRoutes(app);
+  registerDashboardRoutes(app);
+  registerCvRoutes(app);
+  registerAssistantRoutes(app);
+
+  // Admin last: it is the only router that checks the role.
+  registerAdminRoutes(app);
 }
 
 export { healthSchema };

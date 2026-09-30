@@ -60,15 +60,37 @@ export async function requireAuth(
 }
 
 /** Admin-only gate. Must always be mounted after requireAuth. */
+/**
+ * Role gate.
+ *
+ * The role is read from the DATABASE, never from the token's `role` claim.
+ * A claim is only as trustworthy as the signing secret, and an attacker who
+ * has it can mint an admin token for their own account. Reading the role from
+ * the user document makes the token's claim irrelevant for authorization.
+ */
 export function requireRole(...roles: string[]) {
-  return (req: AuthenticatedRequest, _res: Response, next: NextFunction): void => {
+  return async (req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> => {
     if (!req.userId) return next(unauthorized('Please sign in to continue.'));
 
-    const role = req.userRole;
-    if (!role || !roles.includes(role)) {
-      return next(forbidden('This area is restricted to administrators.'));
+    try {
+      const user = (await models.User.findById(req.userId).select('role isActive').lean()) as {
+        role: string;
+        isActive: boolean;
+      } | null;
+
+      if (!user) return next(unauthorized('Your account could not be found.'));
+      if (!user.isActive) return next(forbidden('This account has been deactivated.'));
+
+      if (!roles.includes(user.role)) {
+        return next(forbidden('This area is restricted to administrators.'));
+      }
+
+      // Keep req.userRole accurate for any downstream handler.
+      req.userRole = user.role;
+      return next();
+    } catch (error) {
+      return next(error);
     }
-    return next();
   };
 }
 
