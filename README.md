@@ -139,7 +139,6 @@ tests/e2e/   Playwright suite
 | [`docs/SETUP.md`](docs/SETUP.md)               | Local setup, Atlas configuration, and deployment           |
 | [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md)     | How a student uses the product                             |
 | [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md)     | Running a demo that cannot fail                            |
-| [`PROGRESS.md`](PROGRESS.md)                   | Build tracker and defect log                               |
 
 ---
 
@@ -157,14 +156,38 @@ first deploy.
 
 ## Contributing
 
-`AGENTS.md` is the project constitution: the rules every change must follow.
-The short version:
+Five rules govern every change:
 
-- Scores live in `packages/shared` and nowhere else.
-- AI may supply wording; it may never supply a number.
-- The impact dashboard is computed, never entered.
-- Nothing from a CV reaches a student's profile without explicit confirmation.
-- A test that cannot fail is not a test.
+1. **Scores live in `packages/shared` and nowhere else.** The server and the
+   client import the same scoring functions, so the number on screen is the
+   number in the student's hand. Do not duplicate a formula.
+2. **AI may supply wording; it may never supply a number.** Alignment, gaps,
+   priorities, and roadmap pacing are arithmetic.
+3. **The impact dashboard is computed, never entered.** Every metric is a
+   database aggregate — no constants, no estimates.
+4. **Nothing from a CV reaches a student's profile without explicit
+   confirmation.** Extraction writes `pending`; only the review endpoint
+   promotes a row.
+5. **A test that cannot fail is not a test.** If it still passes when the
+   feature is deleted, it is worthless.
+
+### Before you push
+
+```bash
+npm run verify    # format, lint, typecheck, 173 tests, production build
+npm run test:e2e  # 20 Playwright tests against a real server and database
+```
+
+Both must be green. CI runs them on every push.
+
+### Code layout
+
+| Path               | Contains                                                                                     |
+| ------------------ | -------------------------------------------------------------------------------------------- |
+| `packages/shared`  | Contracts, enums, and the scoring engine. Pure — no I/O, no imports from the other packages. |
+| `packages/server`  | `routes → services → models → MongoDB`, plus the AI providers.                               |
+| `packages/client`  | `pages → components → lib/api`. Every route lazy-loaded.                                     |
+| `packages/content` | The skill library as typed data.                                                             |
 
 ---
 

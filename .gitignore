@@ -21,9 +21,8 @@ tmp/
 npm-debug.log*
 logs/
 
-# Kilo agent-manager local state (UI/recovery only, not config)
-.kilo/agent-manager.json
-.kilo/worktrees/
+# Local agent working state, if any is created
+.kilo/
 
 # OS
 .DS_Store
