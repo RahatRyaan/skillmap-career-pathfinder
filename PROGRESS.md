@@ -189,6 +189,38 @@ found and fixed:
    rewritten to be order-independent and doubled in coverage (job guarantees,
    salary figures in 4 currencies, employment-probability claims).
 
+### Bugs caught during S3–S7
+
+The API test suite earned its keep immediately. Five defects that would have
+shipped:
+
+1. **Profile and preferences were completely unauthenticated.** The guard was
+   mounted at `router.use('/api', requireAuth)` inside a router that was
+   _itself_ mounted at `/api`, so it looked for `/api/api` and never matched.
+   A test asserting 401 on a missing token is what surfaced it.
+2. **`/careers/compare` returned 404.** It was registered after
+   `/careers/:id`, so `compare` was captured as an id and rejected. Literal
+   paths must be registered before parameterised ones.
+3. **Validated input was being ignored.** The middleware stored parsed data on
+   `req.validated` while routes read `req.body` and `req.query` through a cast
+   that TypeScript happily accepted. The career comparison crashed on
+   `ids.map is not a function` because it received a raw string.
+4. **A single composite middleware read `req.body`**, which consumed the body
+   and made validated input vanish for later middleware. Split into
+   `requireAuth` and an opt-in `requireActiveAccount`.
+5. **Shadowed bindings in `Promise.all` destructuring** caused a TDZ
+   `Cannot access 'profile' before initialization`, breaking the whole profile
+   endpoint.
+
+Two toolchain problems worth knowing about, both documented in the code:
+
+- A generic `mongoose.model<T>(...)` call, even with all five type arguments
+  pinned explicitly, exhausts memory in `tsc` and in ESLint's type-aware lint.
+  Registering models through one non-generic helper and applying the document
+  interface at the boundary keeps full types with a fast checker.
+- An inline `import('mongoose').Schema` type query does the same thing. Named
+  imports are used instead.
+
 ### Decisions taken without waiting (reversible, flagged for you)
 
 | Decision      | Choice         | Why                                                                                                         |
