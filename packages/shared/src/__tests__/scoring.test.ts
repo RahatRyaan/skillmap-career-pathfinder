@@ -297,9 +297,7 @@ describe('priority engine', () => {
     // The hard constraint must still put SQL first.
     const items = calculatePriorities(buildGaps());
     const byName = new Map(items.map((i) => [i.skillName, i]));
-    const powerBiScore = byName.get('Power BI')?.score ?? 0;
-    const sqlScore = byName.get('SQL')?.score ?? 0;
-    expect(powerBiScore).toBeGreaterThan(0);
+    expect(byName.get('Power BI')?.score ?? 0).toBeGreaterThan(0);
     expect(byName.get('SQL')?.rank).toBeLessThan(byName.get('Power BI')?.rank ?? 99);
   });
 

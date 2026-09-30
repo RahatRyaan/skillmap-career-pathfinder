@@ -7,11 +7,8 @@
 
 import { z } from 'zod';
 import {
-  aiInteractionKindSchema,
-  aiSourceTagSchema,
   contentPreferenceSchema,
   costPreferenceSchema,
-  emailSchema,
   educationLevelSchema,
   importanceSchema,
   languageSchema,
@@ -19,11 +16,9 @@ import {
   objectIdSchema,
   onboardingStepSchema,
   paginationQuerySchema,
-  passwordSchema,
   projectLevelSchema,
   resourceTypeSchema,
   roadmapItemStatusSchema,
-  roadmapItemTypeSchema,
   skillCategorySchema,
   skillLevelSchema,
   skillSourceSchema,
