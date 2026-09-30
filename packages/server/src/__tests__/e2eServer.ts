@@ -31,6 +31,10 @@ if (process.env['PORT'] && Number(process.env['PORT']) !== PORT) {
   process.stderr.write(`PORT env ignored: ${process.env['PORT']}\n`);
 }
 
+// A test harness is a process entrypoint: exiting is the correct way to report
+// failure, so the library rule is relaxed for this file only.
+/* eslint-disable no-process-exit */
+
 async function main(): Promise<void> {
   // A fixed dbpath, cleaned first. The default lands in the OS temp dir, and
   // an unclean run leaves a 300MB data directory behind every time, which fills
