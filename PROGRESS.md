@@ -15,7 +15,8 @@
 | Metric               | Value                                                               |
 | -------------------- | ------------------------------------------------------------------- |
 | **Steps complete**   | **22 / 22**                                                         |
-| Current phase        | Complete — pre-ship gate passed                                     |
+| Database             | Atlas M0 `slikkmap` — connected, seeded, verified                   |
+| Current phase        | Complete — running against live Atlas                               |
 | Code blockers        | 0                                                                   |
 | Deployment blockers  | 1 (Atlas cluster)                                                   |
 | Tests passing        | **173** unit/API + **20** E2E                                       |
