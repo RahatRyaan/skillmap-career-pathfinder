@@ -24,13 +24,22 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       output: {
-        // Charts and the graph are heavy and only needed on some routes, so
-        // they are split out rather than shipped in the main bundle.
+        /**
+         * Only the framework is split out by hand.
+         *
+         * Recharts and the flow graph were previously listed here too, which
+         * had the opposite of the intended effect: Vite preloads every chunk
+         * named in `manualChunks` on the entry page, so a 416 KB charting
+         * library was downloaded by every visitor, including the landing page
+         * that has no charts.
+         *
+         * Route-level `React.lazy` already keeps them out of the entry chunk,
+         * and the bundle sizes confirm it. Listing a library here is only
+         * correct when every route needs it.
+         */
         manualChunks: {
           react: ['react', 'react-dom', 'react-router-dom'],
           query: ['@tanstack/react-query'],
-          charts: ['recharts'],
-          graph: ['@xyflow/react'],
         },
       },
     },

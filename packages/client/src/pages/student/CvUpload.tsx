@@ -280,8 +280,14 @@ export default function CvUpload() {
           )}
         >
           <CardHeader title="Upload a CV" description="PDF or DOCX, up to 5MB." />
+          {/* The input is visually hidden but keeps a real accessible name, and
+              it is focusable so it can still be reached by keyboard. */}
+          <label htmlFor="cv-file-input" className="sr-only-focusable">
+            Choose a CV file. PDF or DOCX, up to 5 megabytes.
+          </label>
           <input
             ref={inputRef}
+            id="cv-file-input"
             type="file"
             accept=".pdf,.docx"
             className="sr-only-focusable"
